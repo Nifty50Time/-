@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Custom CSS */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
+        #loading {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lds-dual-ring {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+        }
+
+        .lds-dual-ring:after {
+            content: " ";
+            display: block;
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border-radius: 50%;
+            border: 6px solid #007bff;
+            border-color: #007bff transparent #007bff transparent;
+            animation: lds-dual-ring 1.2s linear infinite;
+        }
+
+        @keyframes lds-dual-ring {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #svg-background {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        #totalTimeDisplay {
+            margin-top: 20px;
+            position: relative;
+            /* Added for z-index */
+            z-index: 1;
+            /* Ensure content appears above SVG background */
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .opensource-label {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .introduction-logo {
+            float: right;
+            cursor: pointer;
+        }
+
+        /* Modal */
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .modal-footer {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">
+        <div class="lds-dual-ring"></div>
+    </div>
+
+    <svg id="svg-background" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient id="gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" style="stop-color:#0000ff80;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgba(0, 0, 255, 0);stop-opacity:0" />
+            </radialGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#gradient)" />
+        <circle cx="400" cy="300" r="50" fill="none" stroke="rgba(255, 255, 255, 0.8)">
+            <animate attributeName="cx" from="200" to="600" dur="5s" repeatCount="indefinite" />
+            <animate attributeName="cy" from="150" to="450" dur="5s" repeatCount="indefinite" />
+        </circle>
+    </svg>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 mt-5">
+                <h2 class="mt-4 text-dark">
+                    <i class="bi bi-hourglass-split"></i>
+                    Time Calculator
+                    <span class="introduction-logo " onclick="showIntroduction()"><i
+                            class="bi bi-info-circle"></i></span>
+                </h2>
+
+                <form id="timeForm">
+                    <div class="mb-3">
+                        <label for="timeString" class="form-label">Enter times separated by line breaks:</label>
+                        <textarea class="form-control" id="timeString" name="timeString" rows="7" cols="40"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-dark">Calculate Total Time</button>
+                </form>
+
+                <div id="totalTimeDisplay" style="display: none;">
+                    <h3>Total Time Spent:</h3>
+                    <p id="totalTime"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Source Label -->
+    <!-- <div class="opensource-label">Open Source</div> -->
+    <!-- Modal -->
+    <div class="modal fade" id="introductionModal" tabindex="-1" aria-labelledby="introductionModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark">
+                    <h5 class="modal-title" id="introductionModalLabel">Introduction to Time Calculator</h5>
+                    <button type="button p-0 m-0" class="btn-close text-light" data-bs-dismiss="modal"
+                        aria-label="Close">
+                        <h5 class="m-0 p-0 mb-1"> <i class="bi bi-x-octagon"></i></h5>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Welcome</p>
+                    <p>This calculator helps you to calculate the total time spent. Please enter times in the format
+                        <strong>HH:MM:SS AM/PM</strong>, separated by line breaks.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional if needed) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Hide loading animation when the page is fully loaded
+            document.getElementById("loading").style.display = "none";
+        });
+
+        document.getElementById('timeForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var timeString = document.getElementById('timeString').value.trim();
+            var times = timeString.split('\n').map(function (time) {
+                if (time.trim() === "MISSING") {
+                    return getCurrentTime();
+                } else {
+                    return time.trim();
+                }
+            });
+            var totalTime = calculateTotalTime(times);
+            document.getElementById('totalTime').textContent = totalTime.hours + " hours, " + totalTime.minutes + " minutes, " + totalTime.seconds + " seconds";
+            document.getElementById('totalTimeDisplay').style.display = 'block';
+        });
+
+        function showIntroduction() {
+            var introductionModal = new bootstrap.Modal(document.getElementById('introductionModal'));
+            introductionModal.show();
+        }
+
+        function getCurrentTime() {
+            var now = new Date();
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var seconds = now.getSeconds();
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Handle midnight (0 hours)
+            return formatTime(hours) + ":" + formatTime(minutes) + ":" + formatTime(seconds) + " " + ampm;
+        }
+
+        function formatTime(time) {
+            return time < 10 ? "0" + time : time;
+        }
+
+        function calculateTotalTime(times) {
+            var totalMilliseconds = 0;
+
+            // Loop through each pair of check-in and check-out times
+            for (var i = 0; i < times.length; i += 2) {
+                var checkInTime = new Date("2000-01-01 " + times[i]);
+                var checkOutTime = new Date("2000-01-01 " + times[i + 1]);
+
+                // Calculate the difference in milliseconds
+                totalMilliseconds += Math.abs(checkOutTime - checkInTime);
+            }
+
+            // Convert total milliseconds to hours, minutes, and seconds
+            var totalSeconds = Math.floor(totalMilliseconds / 1000);
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            // Return the total time as an object
+            return {
+                hours: hours,
+                minutes: minutes,
+                seconds: seconds
+            };
+        }
+    </script>
+
+</body>
+
+</html>
